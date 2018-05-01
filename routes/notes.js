@@ -2,25 +2,44 @@
 
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
+mongoose.Promise = global.Promise;
+
+const Note = require('../models/note');
+
+
 
 /* ========== GET/READ ALL ITEM ========== */
 router.get('/', (req, res, next) => {
 
-  console.log('Get All Notes');
-  res.json([
-    { id: 1, title: 'Temp 1' },
-    { id: 2, title: 'Temp 2' },
-    { id: 3, title: 'Temp 3' }
-  ]);
+  const {searchTerm} = req.query;
+  let filter = {};
 
+  if (searchTerm) {
+    const re = new RegExp(searchTerm, 'i');
+    filter.title = { $regex: re };
+  }
+
+  return Note.find(filter)
+    .sort('created')
+    .then(results => {
+      res.json(results);
+      
+    })
+    .catch(next);
 });
 
 /* ========== GET/READ A SINGLE ITEM ========== */
 router.get('/:id', (req, res, next) => {
+  const {id} = req.params;
+  if (id.length !== 24) return next();
 
-  console.log('Get a Note');
-  res.json({ id: 1, title: 'Temp 1' });
-
+  return Note.findById(id)
+    .then(results => {
+      if (results) return res.json(results);
+      next();
+    })
+    .catch(next);
 });
 
 /* ========== POST/CREATE AN ITEM ========== */
