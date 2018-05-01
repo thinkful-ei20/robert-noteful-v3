@@ -6,15 +6,10 @@ const Note = require('../models/note');
 
 mongoose.connect(MONGODB_URI)
   .then(() => {
-    const {title, content} = {title: 'test', content: 'testytest'};
-    if (!title) {
-      console.log('yo, aint no title in der!');
-      // const err = new Error('Missing `title` in request body');
-      // err.status = 400;
-      // return next(err);
-    }
+    const id = '5ae8c401f64367bc5ccabb63';
+    
 
-    return Note.create({title, content,})
+    return Note.findByIdAndRemove(id)
       .then(results => {
         console.log(results);
       })

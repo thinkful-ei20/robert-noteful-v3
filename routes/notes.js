@@ -2,8 +2,7 @@
 
 const express = require('express');
 const router = express.Router();
-const mongoose = require('mongoose');
-mongoose.Promise = global.Promise;
+
 
 const Note = require('../models/note');
 
@@ -14,14 +13,16 @@ router.get('/', (req, res, next) => {
 
   const {searchTerm} = req.query;
   let filter = {};
+  let search;
 
   if (searchTerm) {
     const re = new RegExp(searchTerm, 'i');
-    filter.title = { $regex: re };
+    search = { $regex: re };
+    filter = {$or: [{title: search}, {content: search}]};
   }
 
   return Note.find(filter)
-    .sort('created')
+    .sort('created')        
     .then(results => {
       res.json(results);
       
@@ -45,24 +46,53 @@ router.get('/:id', (req, res, next) => {
 /* ========== POST/CREATE AN ITEM ========== */
 router.post('/', (req, res, next) => {
 
-  console.log('Create a Note');
-  res.location('path/to/new/document').status(201).json({ id: 2, title: 'Temp 2' });
+  const {title, content} = req.body;
+  if (!title) {
+    const err = new Error('Missing `title` in request body');
+    err.status = 400;
+    return next(err);
+  }
+
+  return Note.create({title, content,})
+    .then(results => {
+      res.location(`${req.originalUrl}/${results.id}`).status(201).json(results);
+    })
+    .catch(next);
 
 });
 
 /* ========== PUT/UPDATE A SINGLE ITEM ========== */
 router.put('/:id', (req, res, next) => {
 
-  console.log('Update a Note');
-  res.json({ id: 1, title: 'Updated Temp 1' });
+  const {id} = req.params;
+  const {title, content} = req.body;
 
+  if (id.length !== 24) return next();
+
+  if (!title) {
+    const err = new Error('Missing `title` in request body');
+    err.status = 400;
+    return next(err);
+  }
+
+  return Note.findByIdAndUpdate(id, {title, content, updatedAt: Date.now()}, {new: true, upsert: true})
+    .then(results => {
+      if (results) return res.json(results);
+      next();
+    })
+    .catch(next);
 });
 
 /* ========== DELETE/REMOVE A SINGLE ITEM ========== */
 router.delete('/:id', (req, res, next) => {
+  const {id} = req.params;
+  if (id.length !== 24) return next();
 
-  console.log('Delete a Note');
-  res.status(204).end();
+  return Note.findByIdAndRemove(id)
+    .then(() => {
+      res.sendStatus(204);
+    })
+    .catch(next);
 });
 
 module.exports = router;
