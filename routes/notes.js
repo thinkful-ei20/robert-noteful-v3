@@ -2,7 +2,7 @@
 
 const express = require('express');
 const router = express.Router();
-
+const mongoose = require('mongoose');
 
 const Note = require('../models/note');
 
@@ -24,7 +24,7 @@ router.get('/', (req, res, next) => {
   return Note.find(filter)
     .sort('created')        
     .then(results => {
-      res.json(results);
+      return res.json(results);
       
     })
     .catch(next);
@@ -33,12 +33,12 @@ router.get('/', (req, res, next) => {
 /* ========== GET/READ A SINGLE ITEM ========== */
 router.get('/:id', (req, res, next) => {
   const {id} = req.params;
-  if (id.length !== 24) return next();
+  if (!mongoose.Types.ObjectId.isValid(id)) return next();
 
   return Note.findById(id)
     .then(results => {
       if (results) return res.json(results);
-      next();
+      return next();
     })
     .catch(next);
 });
@@ -55,7 +55,7 @@ router.post('/', (req, res, next) => {
 
   return Note.create({title, content,})
     .then(results => {
-      res.location(`${req.originalUrl}/${results.id}`).status(201).json(results);
+      return res.location(`${req.originalUrl}/${results.id}`).status(201).json(results);
     })
     .catch(next);
 
@@ -78,7 +78,7 @@ router.put('/:id', (req, res, next) => {
   return Note.findByIdAndUpdate(id, {title, content, updatedAt: Date.now()}, {new: true, upsert: true})
     .then(results => {
       if (results) return res.json(results);
-      next();
+      return next();
     })
     .catch(next);
 });
