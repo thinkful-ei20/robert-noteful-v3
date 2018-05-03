@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const folderSchema = mongoose.Schema({
-  name: {type: String, required: true,}
+  name: {type: String, required: true, unique: true}
 }, {
   timeStamps: true
 });

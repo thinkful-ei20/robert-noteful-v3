@@ -27,7 +27,7 @@ router.get('/', (req, res, next) => {
       return res.json(results);
       
     })
-    .catch(next);
+    .catch(err => next(err));
 });
 
 /* ========== GET/READ A SINGLE ITEM ========== */
@@ -40,7 +40,7 @@ router.get('/:id', (req, res, next) => {
       if (results) return res.json(results);
       return next();
     })
-    .catch(next);
+    .catch(err => next(err));
 });
 
 /* ========== POST/CREATE AN ITEM ========== */
@@ -57,7 +57,7 @@ router.post('/', (req, res, next) => {
     .then(results => {
       return res.location(`${req.originalUrl}/${results.id}`).status(201).json(results);
     })
-    .catch(next);
+    .catch(err => next(err));
 
 });
 
@@ -80,7 +80,7 @@ router.put('/:id', (req, res, next) => {
       if (results) return res.json(results);
       return next();
     })
-    .catch(next);
+    .catch(err => next(err));
 });
 
 /* ========== DELETE/REMOVE A SINGLE ITEM ========== */
@@ -92,7 +92,7 @@ router.delete('/:id', (req, res, next) => {
     .then(() => {
       res.sendStatus(204);
     })
-    .catch(next);
+    .catch(err => next(err));
 });
 
 module.exports = router;
